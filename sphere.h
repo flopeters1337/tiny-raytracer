@@ -3,10 +3,11 @@
 
 #include <cmath>
 #include "geometry.h"
+#include "material.h"
 
-struct Sphere
+struct SSphere
 {
-    Sphere(const Vec3f &Center, const float &Radius) : Center{Center}, Radius{Radius} {}
+    SSphere(const Vec3f &Center, const float &Radius, const SMaterial& Material) : Center{Center}, Radius{Radius}, Material{Material} {}
 
     bool RayIntersect(const Vec3f& RayOrigin, const Vec3f& RayDirection, float& Distance) const
     {
@@ -55,6 +56,7 @@ struct Sphere
 
     Vec3f Center;
     float Radius;
+    SMaterial Material;
 };
 
 #endif //__SPHERE_H__

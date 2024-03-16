@@ -7,9 +7,9 @@
 #include <iostream>
 
 template <size_t DIM, typename T>
-struct vec 
+struct Vec 
 {
-    vec() 
+    Vec() 
     { 
         for (size_t Index = DIM; Index > 0; --Index)
         {
@@ -33,16 +33,16 @@ private:
     T Data[DIM];
 };
 
-typedef vec<2, float> Vec2f;
-typedef vec<3, float> Vec3f;
-typedef vec<3, int> Vec3i;
-typedef vec<4, float> Vec4f;
+typedef Vec<2, float> Vec2f;
+typedef Vec<3, float> Vec3f;
+typedef Vec<3, int> Vec3i;
+typedef Vec<4, float> Vec4f;
 
-template <typename T> struct vec<2, T>
+template <typename T> struct Vec<2, T>
 {
-    vec() : x{T{}}, y{T{}} {}
-    vec(T X, T Y) : x{X}, y{Y} {}
-    template <class U> vec<2, T>(const vec<2, U>& v);
+    Vec() : x{T{}}, y{T{}} {}
+    Vec(T X, T Y) : x{X}, y{Y} {}
+    template <class U> Vec<2, T>(const Vec<2, U>& v);
     
     T& operator[](const size_t Index)
     {
@@ -59,10 +59,10 @@ template <typename T> struct vec<2, T>
     T x, y;
 };
 
-template <typename T> struct vec<3, T>
+template <typename T> struct Vec<3, T>
 {
-    vec() : x{T{}}, y{T{}}, z{T{}} {}
-    vec(T X, T Y, T Z) : x{X}, y{Y}, z{Z} {}
+    Vec() : x{T{}}, y{T{}}, z{T{}} {}
+    Vec(T X, T Y, T Z) : x{X}, y{Y}, z{Z} {}
 
     T& operator[](const size_t Index)
     {
@@ -81,19 +81,19 @@ template <typename T> struct vec<3, T>
         return std::sqrt(x * x + y * y + z * z);
     }
 
-    vec<3, T> Normalized(T Length = 1) const
+    Vec<3, T> Normalized(T Length = 1) const
     {
-        vec<3, T> NormalizedVector = (*this) * (Length / Norm());
+        Vec<3, T> NormalizedVector = (*this) * (Length / Norm());
         return NormalizedVector;
     }
 
-    vec<3, T>& Normalize(T Length = 1)
+    Vec<3, T>& Normalize(T Length = 1)
     {
         *this = (*this) * (Length / Norm());
         return *this;
     }
 
-    T DistanceSquared(const vec<3, T>& OtherVector) const
+    T DistanceSquared(const Vec<3, T>& OtherVector) const
     {
         return (OtherVector.x - x) * (OtherVector.x - x) + (OtherVector.y - y) * (OtherVector.y - y) + (OtherVector.z - z) * (OtherVector.z - z);
     }
@@ -101,10 +101,10 @@ template <typename T> struct vec<3, T>
     T x, y, z;
 };
 
-template <typename T> struct vec<4, T>
+template <typename T> struct Vec<4, T>
 {
-    vec() : x{T{}}, y{T{}}, z{T{}}, w{T{}} {}
-    vec(T X, T Y, T Z, T W) : x{X}, y{Y}, z{Z}, w{W} {}
+    Vec() : x{T{}}, y{T{}}, z{T{}}, w{T{}} {}
+    Vec(T X, T Y, T Z, T W) : x{X}, y{Y}, z{Z}, w{W} {}
 
     T& operator[](const size_t Index)
     {
@@ -121,7 +121,7 @@ template <typename T> struct vec<4, T>
     T x, y, z, w;
 };
 
-template<size_t DIM, typename T> T operator*(const vec<DIM, T>& LeftVector, const vec<DIM, T>& RightVector)
+template<size_t DIM, typename T> T operator*(const Vec<DIM, T>& LeftVector, const Vec<DIM, T>& RightVector)
 {
     T ReturnValue = T{};
     for (size_t Index = 0; Index < DIM; ++Index)
@@ -131,7 +131,7 @@ template<size_t DIM, typename T> T operator*(const vec<DIM, T>& LeftVector, cons
     return ReturnValue;
 }
 
-template<size_t DIM, typename T> vec<DIM, T> operator+(vec<DIM, T> LeftVector, const vec<DIM, T>& RightVector)
+template<size_t DIM, typename T> Vec<DIM, T> operator+(Vec<DIM, T> LeftVector, const Vec<DIM, T>& RightVector)
 {
     for (size_t Index = 0; Index < DIM; ++Index)
     {
@@ -140,7 +140,7 @@ template<size_t DIM, typename T> vec<DIM, T> operator+(vec<DIM, T> LeftVector, c
     return LeftVector;
 }
 
-template<size_t DIM, typename T> vec<DIM, T> operator-(vec<DIM, T> LeftVector, const vec<DIM, T>& RightVector)
+template<size_t DIM, typename T> Vec<DIM, T> operator-(Vec<DIM, T> LeftVector, const Vec<DIM, T>& RightVector)
 {
     for (size_t Index = 0; Index < DIM; ++Index)
     {
@@ -149,9 +149,9 @@ template<size_t DIM, typename T> vec<DIM, T> operator-(vec<DIM, T> LeftVector, c
     return LeftVector;
 }
 
-template<size_t DIM, typename T, typename U> vec<DIM, T> operator*(const vec<DIM, T> LeftVector, const U& RightValue)
+template<size_t DIM, typename T, typename U> Vec<DIM, T> operator*(const Vec<DIM, T> LeftVector, const U& RightValue)
 {
-    vec<DIM, T> ReturnVector;
+    Vec<DIM, T> ReturnVector;
     for (size_t Index = 0; Index < DIM; ++Index)
     {
         ReturnVector[Index] = LeftVector[Index] * RightValue;
@@ -159,12 +159,12 @@ template<size_t DIM, typename T, typename U> vec<DIM, T> operator*(const vec<DIM
     return ReturnVector;
 }
 
-template <size_t DIM, typename T> vec<DIM, T> operator-(const vec<DIM, T>& LeftVector)
+template <size_t DIM, typename T> Vec<DIM, T> operator-(const Vec<DIM, T>& LeftVector)
 {
     return LeftVector * T{-1};
 }
 
-template <size_t DIM, typename T> T Dot(vec<DIM, T> VectorA, vec<DIM, T> VectorB)
+template <size_t DIM, typename T> T Dot(Vec<DIM, T> VectorA, Vec<DIM, T> VectorB)
 {
     T ReturnValue = T{0};
     for (size_t Index = 0; Index < DIM; ++Index)
@@ -174,22 +174,22 @@ template <size_t DIM, typename T> T Dot(vec<DIM, T> VectorA, vec<DIM, T> VectorB
     return ReturnValue;
 }
 
-template <typename T> vec<3, T> Cross(vec<3, T> VectorA, vec<3, T> VectorB)
+template <typename T> Vec<3, T> Cross(Vec<3, T> VectorA, Vec<3, T> VectorB)
 {
-    return vec<3, T>{VectorA.y * VectorB.z - VectorA.z * VectorB.y, VectorA.z * VectorB.x - VectorA.x * VectorB.z, VectorA.x * VectorB.y - VectorA.y * VectorB.x};
+    return Vec<3, T>{VectorA.y * VectorB.z - VectorA.z * VectorB.y, VectorA.z * VectorB.x - VectorA.x * VectorB.z, VectorA.x * VectorB.y - VectorA.y * VectorB.x};
 }
 
-template <typename T> vec<3, T> Project(const vec<3, T>& Point, const vec<3, T>& RayOrigin, const vec<3, T>& RayDirection)
+template <typename T> Vec<3, T> Project(const Vec<3, T>& Point, const Vec<3, T>& RayOrigin, const Vec<3, T>& RayDirection)
 {
-    const vec<3, T> RayOriginToPoint = Point - RayOrigin;
-    const vec<3, T> NormalizedDirection = RayDirection.Normalized();
+    const Vec<3, T> RayOriginToPoint = Point - RayOrigin;
+    const Vec<3, T> NormalizedDirection = RayDirection.Normalized();
     const float DotProduct = Dot(RayOriginToPoint, NormalizedDirection);
-    const vec<3, T> OriginToProjection =  NormalizedDirection * DotProduct;
-    const vec<3, T> Projection = RayOrigin + OriginToProjection;
+    const Vec<3, T> OriginToProjection =  NormalizedDirection * DotProduct;
+    const Vec<3, T> Projection = RayOrigin + OriginToProjection;
     return Projection;
 };
 
-template <size_t DIM, typename T> std::ostream& operator<<(std::ostream& Out, const vec<DIM, T>& Vector)
+template <size_t DIM, typename T> std::ostream& operator<<(std::ostream& Out, const Vec<DIM, T>& Vector)
 {
     for (unsigned int Index = 0; Index < DIM; ++Index)
     {
