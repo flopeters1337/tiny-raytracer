@@ -5,9 +5,9 @@
 
 struct SMaterial
 {
-    SMaterial(const Vec3f& Color) : DiffuseColor(Color) {}
+    SMaterial(const SVec3f& Color) : DiffuseColor(Color) {}
     SMaterial() : DiffuseColor() {}
-    Vec3f DiffuseColor;
+    SVec3f DiffuseColor;
 };
 
 #endif // __MATERIAL_H__

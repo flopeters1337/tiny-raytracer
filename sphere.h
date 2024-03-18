@@ -7,11 +7,11 @@
 
 struct SSphere
 {
-    SSphere(const Vec3f &Center, const float &Radius, const SMaterial& Material) : Center{Center}, Radius{Radius}, Material{Material} {}
+    SSphere(const SVec3f &Center, const float &Radius, const SMaterial& Material) : Center{Center}, Radius{Radius}, Material{Material} {}
 
-    bool RayIntersect(const Vec3f& RayOrigin, const Vec3f& RayDirection, float& Distance) const
+    bool RayIntersect(const SVec3f& RayOrigin, const SVec3f& RayDirection, float& Distance) const
     {
-        const Vec3f RayToCenter = Center - RayOrigin;
+        const SVec3f RayToCenter = Center - RayOrigin;
 
         // Sphere behind the ray's origin.
         if (Dot(RayToCenter, RayDirection) < 0)
@@ -28,7 +28,7 @@ struct SSphere
             }
             else
             {
-                const Vec3f Projection = Project(Center, RayOrigin, RayDirection);
+                const SVec3f Projection = Project(Center, RayOrigin, RayDirection);
                 const float ProjectionToCenterDistanceSquared = Projection.DistanceSquared(Center);
                 const float ProjectionToIntersectionDistance = std::sqrt(Radius * Radius - ProjectionToCenterDistanceSquared);
                 Distance = ProjectionToIntersectionDistance - (Projection - RayOrigin).Norm();
@@ -38,7 +38,7 @@ struct SSphere
         // Sphere in front of the ray's origin.
         else
         {
-            const Vec3f Projection = Project(Center, RayOrigin, RayDirection);
+            const SVec3f Projection = Project(Center, RayOrigin, RayDirection);
             if (Projection.DistanceSquared(Center) > Radius * Radius)
             {
                 return false;
@@ -54,7 +54,7 @@ struct SSphere
         }
     }
 
-    Vec3f Center;
+    SVec3f Center;
     float Radius;
     SMaterial Material;
 };
