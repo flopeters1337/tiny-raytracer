@@ -76,6 +76,16 @@ template <typename T> struct SVec<3, T>
         return Index <= 0 ? x : (Index == 1 ? y : z);
     }
 
+    bool operator==(const SVec<3, T>& OtherVector) const
+    {
+        return x == OtherVector.x && y == OtherVector.y && z == OtherVector.z;
+    }
+    
+    bool operator!=(const SVec<3, T>& OtherVector) const
+    {
+        return x != OtherVector.x && y != OtherVector.y && z != OtherVector.z;
+    }
+
     float Norm() const
     {
         return std::sqrt(x * x + y * y + z * z);
@@ -96,6 +106,11 @@ template <typename T> struct SVec<3, T>
     T DistanceSquared(const SVec<3, T>& OtherVector) const
     {
         return (OtherVector.x - x) * (OtherVector.x - x) + (OtherVector.y - y) * (OtherVector.y - y) + (OtherVector.z - z) * (OtherVector.z - z);
+    }
+
+    bool NearlyEqual(const SVec<3, T>& OtherVector, const float Tolerance = 1e-3) const
+    {
+        return DistanceSquared(OtherVector) <= Tolerance * Tolerance;
     }
 
     T x, y, z;

@@ -63,6 +63,15 @@ SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<
     for (const SLight& LightSource : LightSources)
     {
         const SVec3f LightDirection = (LightSource.Position - Hit).Normalize();
+        SVec3f LightHit;
+        SVec3f LightNormal;
+        SMaterial LightMaterial;
+        SceneIntersect(LightSource.Position, -LightDirection, Spheres, LightHit, LightNormal, LightMaterial);
+        if (!LightHit.NearlyEqual(Hit))
+        {
+            continue;
+        }
+
         const float DotProductLightNormal = Dot(LightDirection, Normal);
         DiffuseLightIntensity += LightSource.Intensity * std::max(0.f, DotProductLightNormal);
 
