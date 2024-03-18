@@ -159,6 +159,16 @@ template<size_t DIM, typename T, typename U> SVec<DIM, T> operator*(const SVec<D
     return ReturnVector;
 }
 
+template<size_t DIM, typename T, typename U> SVec<DIM, T> operator*(const U& LeftValue, const SVec<DIM, T> RightVector)
+{
+    SVec<DIM, T> ReturnVector;
+    for (size_t Index = 0; Index < DIM; ++Index)
+    {
+        ReturnVector[Index] = LeftValue * RightVector[Index];
+    }
+    return ReturnVector;
+}
+
 template <size_t DIM, typename T> SVec<DIM, T> operator-(const SVec<DIM, T>& LeftVector)
 {
     return LeftVector * T{-1};

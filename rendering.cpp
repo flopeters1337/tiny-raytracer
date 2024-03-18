@@ -59,13 +59,19 @@ SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<
     }
 
     float DiffuseLightIntensity = 0.f;
+    float SpecularLightIntensity = 0.f;
     for (const SLight& LightSource : LightSources)
     {
         const SVec3f LightDirection = (LightSource.Position - Hit).Normalize();
-        DiffuseLightIntensity += LightSource.Intensity * std::max(0.f, Dot(LightDirection, Normal));
+        const float DotProductLightNormal = Dot(LightDirection, Normal);
+        DiffuseLightIntensity += LightSource.Intensity * std::max(0.f, DotProductLightNormal);
+
+        const SVec3f ReflectedLightDirection = Reflect(LightDirection, Normal);
+        SpecularLightIntensity += LightSource.Intensity * powf(std::max(0.f, Dot(ReflectedLightDirection, Direction)), Material.SpecularExponent);
     }
 
-    return Material.DiffuseColor * DiffuseLightIntensity;
+    const SVec3f SpecularLightColor = SVec3f{1.f, 1.f, 1.f};
+    return Material.DiffuseColor * DiffuseLightIntensity * (1 - Material.Albedo) + SpecularLightColor * SpecularLightIntensity * Material.Albedo;
 }
 
 bool SceneIntersect(const SVec3f& Origin, const SVec3f& Direction, const std::vector<SSphere>& Spheres, SVec3f& Hit, SVec3f& Normal, SMaterial& Material)
@@ -85,6 +91,11 @@ bool SceneIntersect(const SVec3f& Origin, const SVec3f& Direction, const std::ve
         Material = Sphere.Material;
     }
     return ClosestSphereDistance < ZClip;
+}
+
+SVec3f Reflect(const SVec3f& Ray, const SVec3f& Normal)
+{
+    return Ray - 2 * Normal * Dot(Ray, Normal);
 }
 
 void WriteBufferToFile(const std::vector<SVec3f>& Framebuffer, const size_t& Width, const size_t& Height)

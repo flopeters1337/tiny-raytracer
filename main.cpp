@@ -13,8 +13,8 @@ int main()
     constexpr size_t Height = 768;
     constexpr float FOV = 70.f;
 
-    const SMaterial GreenMaterial{SVec3f{0.f, 0.6f, 0.2f}};
-    const SMaterial RedMaterial{SVec3f{0.7f, 0.1f, 0.2f}};
+    const SMaterial GreenMaterial{0.8f, SVec3f{0.f, 0.6f, 0.2f}, 50.f};
+    const SMaterial RedMaterial{0.4f, SVec3f{0.7f, 0.1f, 0.2f}, 10.f};
 
     std::vector<SSphere> Spheres;
     Spheres.emplace_back(SSphere{SVec3f{-3.f, 0.f, -16.f}, 2.f, GreenMaterial});
@@ -24,6 +24,8 @@ int main()
 
     std::vector<SLight> Lights;
     Lights.emplace_back(SLight{SVec3f{-20.f, 20.f, 20.f}, 1.5f});
+    Lights.emplace_back(SLight{SVec3f{30.f, 50.f, -25.f}, 1.8f});
+    Lights.emplace_back(SLight{SVec3f{30.f, 20.f, 30.f}, 1.7f});
 
     RenderSpheres(Spheres, Lights, Width, Height, FOV);
 

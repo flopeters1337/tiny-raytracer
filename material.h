@@ -5,9 +5,11 @@
 
 struct SMaterial
 {
-    SMaterial(const SVec3f& Color) : DiffuseColor(Color) {}
+    SMaterial(const float& Albedo, const SVec3f& Color, const float& SpecularExponent) : Albedo{Albedo}, DiffuseColor{Color}, SpecularExponent{SpecularExponent} {}
     SMaterial() : DiffuseColor() {}
+    float Albedo;
     SVec3f DiffuseColor;
+    float SpecularExponent = 0.f;
 };
 
 #endif // __MATERIAL_H__
