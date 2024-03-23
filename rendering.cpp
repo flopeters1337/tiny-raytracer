@@ -9,6 +9,7 @@
 
 constexpr float SmallValue = 1e-3f;
 constexpr float ZClip = 1000.f;
+constexpr float CheckerboardTileSize = 1000.f;
 constexpr size_t MaxCellValue = 255;
 
 void RenderGradient(const size_t& Width, const size_t& Height)
@@ -88,7 +89,7 @@ SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<
         const float DotProductLightNormal = Dot(LightDirection, Normal);
         DiffuseLightIntensity += LightSource.Intensity * std::max(0.f, DotProductLightNormal);
 
-        const SVec3f ReflectedLightDirection = Reflect(LightDirection, Normal);
+        const SVec3f ReflectedLightDirection = Reflect(LightDirection, Normal).Normalize();
         SpecularLightIntensity += LightSource.Intensity * powf(std::max(0.f, Dot(ReflectedLightDirection, Direction)), Material.SpecularExponent);
     }
 
@@ -113,7 +114,28 @@ bool SceneIntersect(const SVec3f& Origin, const SVec3f& Direction, const std::ve
         Normal = (Hit - Sphere.Center).Normalize();
         Material = Sphere.Material;
     }
-    return ClosestSphereDistance < ZClip;
+    
+    const SVec3f LightTileColor = SVec3f{1.f, 1.f, 1.f};
+    const SVec3f DarkTileColor = SVec3f{0.54f, 0.168f, 0.886f};
+    float CheckerboardDistance = std::numeric_limits<float>::max();
+    if (fabs(Direction.y) > SmallValue)
+    {
+        const float Distance = -(Origin.y + 4) / Direction.y;
+        const SVec3f Point = Origin + Direction * Distance;
+        if (Distance > 0.f && fabs(Point.x) < 10.f && Point.z < -10.f && Point.z > -30.f && Distance < ClosestSphereDistance)
+        {
+            CheckerboardDistance = Distance;
+            Hit = Point;
+            Normal = SVec3f{0.f, 1.f, 0.f};
+            const bool bHitLightTile = (int(Hit.x + CheckerboardTileSize) + int(Hit.z)) & 1;
+            Material.DiffuseColor = bHitLightTile ? LightTileColor : DarkTileColor;
+            Material.DiffuseColor = Material.DiffuseColor * 0.3f;
+            Material.Albedo = 0.f;
+            Material.RefractionAlbedo = 0.f;
+        }
+    }
+
+    return ClosestSphereDistance < CheckerboardDistance ? ClosestSphereDistance < ZClip : CheckerboardDistance < ZClip;
 }
 
 SVec3f Reflect(const SVec3f& Ray, const SVec3f& Normal)
