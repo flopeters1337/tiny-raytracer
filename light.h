@@ -6,6 +6,7 @@
 struct SLight
 {
     SLight(const SVec3f& Position, const float& Intensity) : Position{Position}, Intensity{Intensity} {}
+    
     SVec3f Position;
     float Intensity;
 };

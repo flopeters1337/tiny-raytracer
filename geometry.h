@@ -11,7 +11,7 @@ struct SVec
 {
     SVec() 
     { 
-        for (size_t Index = DIM; Index > 0; --Index)
+        for (size_t Index = 0; Index < DIM; ++Index)
         {
             Data[Index] = T{};
         }
@@ -83,7 +83,7 @@ template <typename T> struct SVec<3, T>
     
     bool operator!=(const SVec<3, T>& OtherVector) const
     {
-        return x != OtherVector.x && y != OtherVector.y && z != OtherVector.z;
+        return x != OtherVector.x || y != OtherVector.y || z != OtherVector.z;
     }
 
     float Norm() const
@@ -93,13 +93,23 @@ template <typename T> struct SVec<3, T>
 
     SVec<3, T> Normalized(T Length = 1) const
     {
-        SVec<3, T> NormalizedVector = (*this) * (Length / Norm());
+        const float VectorNorm = Norm();
+        if (VectorNorm == 0)
+        {
+            return *this;
+        }
+        SVec<3, T> NormalizedVector = (*this) * (Length / VectorNorm);
         return NormalizedVector;
     }
 
     SVec<3, T>& Normalize(T Length = 1)
     {
-        *this = (*this) * (Length / Norm());
+        const float VectorNorm = Norm();
+        if (VectorNorm == 0)
+        {
+            return *this;
+        }
+        *this = (*this) * (Length / VectorNorm);
         return *this;
     }
 
@@ -191,7 +201,7 @@ template <size_t DIM, typename T> SVec<DIM, T> operator-(const SVec<DIM, T>& Lef
 
 template <size_t DIM, typename T> T Dot(const SVec<DIM, T>& VectorA, const SVec<DIM, T>& VectorB)
 {
-    T ReturnValue = T{0};
+    T ReturnValue = T{};
     for (size_t Index = 0; Index < DIM; ++Index)
     {
         ReturnValue += VectorA[Index] * VectorB[Index];

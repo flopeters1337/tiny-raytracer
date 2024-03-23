@@ -5,10 +5,19 @@
 
 struct SMaterial
 {
-    SMaterial(const float& Albedo, const float& ReflectiveCoefficient, const SVec3f& Color, const float& SpecularExponent) : Albedo{Albedo}, ReflectiveCoefficient{ReflectiveCoefficient}, DiffuseColor{Color}, SpecularExponent{SpecularExponent} {}
+    SMaterial(const float& Albedo, const float& ReflectionAlbedo, const float& RefractionAlbedo, const float& RefractiveIndex, const SVec3f& DiffuseColor, const float& SpecularExponent) 
+    :   Albedo{Albedo}, 
+        ReflectionAlbedo{ReflectionAlbedo},
+        RefractionAlbedo{RefractionAlbedo},
+        RefractiveIndex{RefractiveIndex},
+        DiffuseColor{DiffuseColor},
+        SpecularExponent{SpecularExponent} {}
     SMaterial() : DiffuseColor() {}
+    
     float Albedo;
-    float ReflectiveCoefficient;
+    float ReflectionAlbedo;
+    float RefractionAlbedo;
+    float RefractiveIndex;
     SVec3f DiffuseColor;
     float SpecularExponent = 0.f;
 };

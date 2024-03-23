@@ -7,6 +7,7 @@
 
 #include "rendering.h"
 
+constexpr float SmallValue = 1e-3f;
 constexpr float ZClip = 1000.f;
 constexpr size_t MaxCellValue = 255;
 
@@ -37,18 +38,19 @@ void RenderSpheres(const std::vector<SSphere>& Spheres, const std::vector<SLight
     {
         for (size_t ColumnIndex = 0; ColumnIndex < Width; ++ColumnIndex)
         {
-            float x = (2 * (ColumnIndex + 0.5) / (float) Width  - 1) * tan(FOV / 2.0) * Width / (float) Height;
-            float y = -(2 * (RowIndex + 0.5) / (float) Height - 1) * tan(FOV / 2.0);
-            SVec3f RayDirection = SVec3f{x, y, -1}.Normalize();
+            float x = (2.f * (ColumnIndex + 0.5f) / (float) Width  - 1.f) * tan(FOV / 2.f) * Width / (float) Height;
+            float y = -(2.f * (RowIndex + 0.5f) / (float) Height - 1.f) * tan(FOV / 2.f);
+            SVec3f RayDirection = SVec3f{x, y, -1.f}.Normalize();
             Framebuffer[ColumnIndex + RowIndex * Width] = Raycast(CameraOrigin, RayDirection, Spheres, LightSources, MaxRecursion);
         }
     }
     WriteBufferToFile(Framebuffer, Width, Height);
 }
 
-SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<SSphere>& Spheres, const std::vector<SLight>& LightSources, const size_t& MaxRecursion)
+SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<SSphere>& Spheres, const std::vector<SLight>& LightSources, const int& MaxRecursion)
 {
     const SVec3f BackgroundColor = SVec3f{0.2f, 0.7f, 0.8f};
+    SVec3f RaycastColor;
     SVec3f Hit;
     SVec3f Normal;
     SMaterial Material;
@@ -58,20 +60,27 @@ SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<
         return BackgroundColor;
     }
 
-    const SVec3f ReflectionDirection = Reflect(Direction, Normal);
-    const SVec3f ReflectionOrigin = Dot(ReflectionDirection, Normal) < 0 ? Hit - Normal * 1e-3 : Hit + Normal * 1e-3;
+    const SVec3f ReflectionDirection = Reflect(Direction, Normal).Normalize();
+    const SVec3f ReflectionOrigin = Dot(ReflectionDirection, Normal) < 0.f ? Hit - Normal * SmallValue : Hit + Normal * SmallValue;
     const SVec3f ReflectionColor = Raycast(ReflectionOrigin, ReflectionDirection, Spheres, LightSources, MaxRecursion - 1);
+    RaycastColor = RaycastColor + ReflectionColor * Material.ReflectionAlbedo;
+
+    const SVec3f RefractionDirection = Refract(Direction, Normal, Material.RefractiveIndex).Normalize();
+    const SVec3f RefractionOrigin = Dot(RefractionDirection, Normal) < 0.f ? Hit - Normal * SmallValue : Hit + Normal * SmallValue;
+    const SVec3f RefractionColor = Raycast(RefractionOrigin, RefractionDirection, Spheres, LightSources, MaxRecursion - 1);
+    RaycastColor = RaycastColor + RefractionColor * Material.RefractionAlbedo;
 
     float DiffuseLightIntensity = 0.f;
     float SpecularLightIntensity = 0.f;
     for (const SLight& LightSource : LightSources)
     {
         const SVec3f LightDirection = (LightSource.Position - Hit).Normalize();
-        SVec3f LightHit;
-        SVec3f LightNormal;
-        SMaterial LightMaterial;
-        SceneIntersect(LightSource.Position, -LightDirection, Spheres, LightHit, LightNormal, LightMaterial);
-        if (!LightHit.NearlyEqual(Hit))
+        const float LightDistance = (LightSource.Position - Hit).Norm();
+        SVec3f ShadowOrigin = Dot(LightDirection, Normal) < 0 ? Hit - Normal * SmallValue : Hit + Normal * SmallValue;
+        SVec3f ShadowHit;
+        SVec3f ShadowNormal;
+        SMaterial ShadowMaterial;
+        if(SceneIntersect(ShadowOrigin, LightDirection, Spheres, ShadowHit, ShadowNormal, ShadowMaterial) && ShadowOrigin.DistanceSquared(ShadowHit) < LightDistance * LightDistance)
         {
             continue;
         }
@@ -84,7 +93,8 @@ SVec3f Raycast(const SVec3f& Origin, const SVec3f& Direction, const std::vector<
     }
 
     const SVec3f SpecularLightColor = SVec3f{1.f, 1.f, 1.f};
-    return Material.DiffuseColor * DiffuseLightIntensity * (1 - Material.Albedo) + SpecularLightColor * SpecularLightIntensity * Material.Albedo + ReflectionColor * Material.ReflectiveCoefficient;
+    RaycastColor = RaycastColor + Material.DiffuseColor * DiffuseLightIntensity * (1.f - Material.Albedo) + SpecularLightColor * SpecularLightIntensity * Material.Albedo;
+    return RaycastColor;
 }
 
 bool SceneIntersect(const SVec3f& Origin, const SVec3f& Direction, const std::vector<SSphere>& Spheres, SVec3f& Hit, SVec3f& Normal, SMaterial& Material)
@@ -108,7 +118,29 @@ bool SceneIntersect(const SVec3f& Origin, const SVec3f& Direction, const std::ve
 
 SVec3f Reflect(const SVec3f& Ray, const SVec3f& Normal)
 {
-    return Ray - 2 * Normal * Dot(Ray, Normal);
+    return Ray - 2.f * Normal * Dot(Ray, Normal);
+}
+
+SVec3f Refract(const SVec3f& Ray, const SVec3f& Normal, const float& RefractiveIndexMaterial)
+{
+    constexpr float RefractiveIndexAir = 1.f;
+    SVec3f IncidenceNormal = Normal;
+    float CosIncidenceAngle = - std::max(-1.f, std::min(1.f, Dot(IncidenceNormal, Ray)));
+    float RefractiveIndexRatio = RefractiveIndexAir / RefractiveIndexMaterial;
+    if (CosIncidenceAngle < 0.f)
+    {
+        IncidenceNormal = - Normal;
+        CosIncidenceAngle = - CosIncidenceAngle;
+        RefractiveIndexRatio = RefractiveIndexMaterial / RefractiveIndexAir;
+    }
+
+    const float CosRefractionAngleSquared = 1.f - RefractiveIndexRatio * RefractiveIndexRatio * (1.f - CosIncidenceAngle * CosIncidenceAngle);
+    if (CosRefractionAngleSquared < 0.f)
+    {
+        return SVec3f{0.f, 0.f, 0.f};
+    }
+    const SVec3f RefractedRay = RefractiveIndexRatio * Ray + (RefractiveIndexRatio * CosIncidenceAngle - std::sqrt(CosRefractionAngleSquared)) * IncidenceNormal;
+    return RefractedRay;
 }
 
 void WriteBufferToFile(const std::vector<SVec3f>& Framebuffer, const size_t& Width, const size_t& Height)
